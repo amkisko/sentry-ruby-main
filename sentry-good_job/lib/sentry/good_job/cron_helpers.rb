@@ -25,7 +25,7 @@ module Sentry
             ::Sentry::Cron::MonitorConfig.from_crontab(cron_expression)
           end
         rescue => e
-          Sentry::GoodJob::Logger.warn "Failed to parse cron expression '#{cron_expression}': #{e.message}"
+          Sentry.configuration.sdk_logger.warn "[sentry-good_job] Failed to parse cron expression '#{cron_expression}': #{e.message}"
           nil
         end
 
@@ -87,9 +87,9 @@ module Sentry
           @setup_completed = true
           if added_jobs.any?
             job_list = added_jobs.join(", ")
-            Sentry::GoodJob::Logger.info "Sentry cron monitoring setup for #{added_jobs.size} scheduled jobs: #{job_list}"
+            Sentry.configuration.sdk_logger.info "[sentry-good_job] Sentry cron monitoring setup for #{added_jobs.size} scheduled jobs: #{job_list}"
           else
-            Sentry::GoodJob::Logger.info "Sentry cron monitoring setup for #{cron_config.keys.size} scheduled jobs"
+            Sentry.configuration.sdk_logger.info "[sentry-good_job] Sentry cron monitoring setup for #{cron_config.keys.size} scheduled jobs"
           end
         end
 
@@ -115,8 +115,8 @@ module Sentry
             job_class = begin
               job_class_name.constantize
             rescue NameError => e
-              Sentry::GoodJob::Logger.warn "Could not find job class '#{job_class_name}' for Sentry cron monitoring: #{e.message}"
-              return nil
+              Sentry.configuration.sdk_logger.warn "[sentry-good_job] Could not find job class '#{job_class_name}' for Sentry cron monitoring: #{e.message}"
+              return
             end
 
             # Include Sentry::Cron::MonitorCheckIns module for cron monitoring
@@ -140,8 +140,8 @@ module Sentry
 
               return job_class_name
             else
-              Sentry::GoodJob::Logger.warn "Could not create monitor config for #{job_class_name} with cron '#{cron_expression}'"
-              return nil
+              Sentry.configuration.sdk_logger.warn "[sentry-good_job] Could not create monitor config for #{job_class_name} with cron '#{cron_expression}'"
+              return
             end
           end
 
@@ -155,6 +155,9 @@ module Sentry
             # Fallback for non-Rails environments
             deferred_setup.call
           end
+
+          # Return the job name for logging purposes
+          job_class_name
         end
 
         # Manually add cron monitoring to a specific job
@@ -178,17 +181,12 @@ module Sentry
           if monitor_config
             monitor_slug = slug || Sentry::GoodJob::CronHelpers::Helpers.monitor_slug(job_class.name)
 
-            # only patch if not explicitly included in job by user
-            unless job_class.ancestors.include?(Sentry::Cron::MonitorCheckIns)
-              job_class.include(Sentry::Cron::MonitorCheckIns)
-            end
-
             job_class.sentry_monitor_check_ins(
               slug: monitor_slug,
               monitor_config: monitor_config
             )
 
-            Sentry::GoodJob::Logger.info "Added Sentry cron monitoring for #{job_class.name} (#{monitor_slug})"
+            Sentry.configuration.sdk_logger.info "[sentry-good_job] Added Sentry cron monitoring for #{job_class.name} (#{monitor_slug})"
           end
         end
       end
