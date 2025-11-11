@@ -4,6 +4,10 @@
 
 - Improve cron monitor slug readability with better formatting and hashing ([#2750](https://github.com/getsentry/sentry-ruby/pull/2750))
 
+### Features
+
+- Introduce sentry-good_job integration ([#2751](https://github.com/getsentry/sentry-ruby/pull/2751))
+
 ## 6.1.0
 
 ### Features
