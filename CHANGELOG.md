@@ -8,11 +8,16 @@
 
 - Introduce sentry-good_job integration ([#2751](https://github.com/getsentry/sentry-ruby/pull/2751))
 
+### Bug Fixes
+
+- Handle empty frames case gracefully with local vars ([#2807](https://github.com/getsentry/sentry-ruby/pull/2807))
+
 ## 6.2.0
 
 ### Features
 
 - Include otel as custom sampling context ([2683](https://github.com/getsentry/sentry-ruby/pull/2683))
+- Ignore new rails rate limit errors ([#2774](https://github.com/getsentry/sentry-ruby/pull/2774))
 
 ### Fixes
 
